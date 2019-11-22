@@ -239,7 +239,17 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		if (op == Kind.OP_MINUS) res = new LuaInt(-getInt(handleExp(e, arg, 1))); // -
 		else if (op == Kind.BIT_XOR) res = new LuaInt(~getInt(handleExp(e, arg, 1))); // ~
 		else if (op == Kind.KW_not) res = new LuaBoolean(!transferToBool(handleExp(e, arg, 1))); // not
-		else if (op == Kind.OP_HASH) error(unExp.firstToken, "Not yet implemented"); // #
+		else if (op == Kind.OP_HASH) {
+			if (e instanceof ExpString) {
+				String s = ((ExpString) e).v;
+				res = new LuaInt(s.length());
+			}
+			else {
+				LuaValue val = handleExp(e, arg, 1);
+				if (val instanceof LuaString) res = new LuaInt(((LuaString) val).value.length());
+				else error(e.firstToken, "Cannot get length");
+			}
+		}
 		else error(unExp.firstToken, "Error ExpUnary");
 		
 		return res;

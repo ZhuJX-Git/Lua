@@ -339,7 +339,20 @@ import interpreter.StaticSemanticException;
 			show(ret);
 			List<LuaValue> expected = makeExpectedWithInts(49,3);
 			assertEquals(expected,ret);			
-		}	
+		}
+		
+		@Test
+		void complexTest0() throws Exception {
+			String input = "if 5 < 3 then x = 6 elseif \"abc\" > \"ab\" then y = 8 * 5 goto label1 else y = 5 end z = 15 ::label1:: z = toNumber(\"145\") return x,y,z";
+			show(input);
+			List<LuaValue> ret = interpret(input);
+			show(ret);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(LuaNil.nil);
+			expected.add(new LuaInt(40));
+			expected.add(new LuaInt(145));
+			assertEquals(ret, expected);
+		}
 		
 		
 		@Test
@@ -545,4 +558,14 @@ import interpreter.StaticSemanticException;
 			List<LuaValue> expected = Arrays.asList(vals);
 			assertEquals(expected, ret);
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 }
