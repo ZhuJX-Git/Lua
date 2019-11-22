@@ -565,6 +565,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 				}
 				else error(statAssign.firstToken, "Cannot put in table");
 			}
+			else if (var instanceof ExpString) error(var.firstToken, "Type error");
 			else {
 				LuaValue key = handleExp(var, arg, 0), value = null;
 				if (exp == null) value = LuaNil.nil;

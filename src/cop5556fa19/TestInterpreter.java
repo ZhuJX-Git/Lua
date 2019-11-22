@@ -354,6 +354,22 @@ import interpreter.StaticSemanticException;
 			assertEquals(ret, expected);
 		}
 		
+		@Test
+		void repeatTest() throws Exception {
+			String input = "i = 0 repeat i = i + 1 until i > 6 return i";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(7));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void assignErrorTest() throws Exception {
+			String input = "\"abc\" = 5 return 0";
+			assertThrows(Exception.class,()->{
+				List<LuaValue> ret = interpret(input);
+			});
+		}
 		
 		@Test
 		void table5() throws Exception {
