@@ -33,20 +33,82 @@ class ScannerTest {
 //	  * Note that calling getNext again after having reached the end of the input should just return another EOF Token.
 //	  * 
 //	  */
-	@Test 
-	void test0() throws Exception {
+	
+	
+	@Test
+	void testFailure0() throws Exception {
+		Reader r = new StringReader("\" \\ \"");
+		Scanner s = new Scanner(r);
+		assertThrows(LexicalException.class, ()->{
+			s.getNext();
+		});
+	}
+	
+	@Test
+	void testFailure1() throws Exception {
+		Reader r = new StringReader("t \n\n--and this is a comment\n\nand and1 --a comment\n\n\"strings\"\n'stringb'\n12345\n12 345\n");
+		Scanner s = new Scanner(r);
+		Token t;
+		t = s.getNext();
+		assertEquals(t.text, "t");
+		
+		t = s.getNext();
+		assertEquals(t.text, "and");
+		
+		t = s.getNext();
+		assertEquals(t.text, "and1");
+		
+		t = s.getNext();
+		assertEquals(t.kind, STRINGLIT);
+		assertEquals(t.text, "\"strings\"");
+		
+		t = s.getNext();
+		assertEquals(t.kind, STRINGLIT);
+		assertEquals(t.text, "'stringb'");
+		
+		t = s.getNext();
+		assertEquals(t.kind, INTLIT);
+		assertEquals(t.text, "12345");
+		
+		t = s.getNext();
+		assertEquals(t.kind, INTLIT);
+		assertEquals(t.text, "12");
+		
+		t = s.getNext();
+		assertEquals(t.kind, INTLIT);
+		assertEquals(t.text, "345");
+		
+		t = s.getNext();
+		assertEquals(t.kind, EOF);
+	}
+	
+	@Test
+	void testFailure2() throws Exception {
+		Reader r = new StringReader("aaaaa--comment\n1234--comment\r\nbbbbb");
+		Scanner s = new Scanner(r);
+		Token t;
+		
+		t = s.getNext();
+		assertEquals(t.kind, NAME);
+		
+		t = s.getNext();
+		assertEquals(t.kind, INTLIT);
+		assertEquals(t.text, "1234");
+		
+		t = s.getNext();
+		assertEquals(t.kind, NAME);
+		assertEquals(t.text, "bbbbb");
+	}
+	
+	@Test
+	void testFailure3() throws Exception {
 		Reader r = new StringReader("--cc");
 		Scanner s = new Scanner(r);
-
 		Token t;
-		show(t = s.getNext());
-		show(t = s.getNext());
-//		show(t = s.getNext());
-//		show(t = s.getNext());
-//		show(t = s.getNext());
-//		show(t = s.getNext());
-//		show(t = s.getNext());
-//		show(t = s.getNext());
+		
+		assertThrows(LexicalException.class, ()->{
+			s.getNext();
+		});
 	}
 
 //	/**

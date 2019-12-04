@@ -54,13 +54,17 @@ import interpreter.built_ins.*;
 
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
-	@SuppressWarnings("serial")
-	public static class StaticSemanticException extends Exception{
-		
-		public StaticSemanticException(Token first, String msg) {
-			super(first.line + ":" + first.pos + " " + msg);
-		}
-	}
+//	@SuppressWarnings("serial")
+//	public static class StaticSemanticException extends Exception{
+//		
+//		public StaticSemanticException(Token first, String msg) {
+//			super(first.line + ":" + first.pos + " " + msg);
+//		}
+//		
+//		public StaticSemanticException(String msg) {
+//			super(msg);
+//		}
+//	}
 	
 	
 	@SuppressWarnings("serial")
@@ -81,7 +85,8 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	boolean exitFlag = false, exitLoop = false;
 	
 	void error(Token firstToken, String message) throws StaticSemanticException{
-		throw new StaticSemanticException(firstToken, message);
+		if (firstToken == null) throw new StaticSemanticException(message);
+		else throw new StaticSemanticException(firstToken, message);
 	}
 	
 	int stringToInt(String s) throws Exception{
@@ -210,7 +215,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		else if (op == Kind.BIT_OR) res = new LuaInt(getInt(handleExp(e0, arg, 1)) | getInt(handleExp(e1, arg, 1))); // |
 		else if (op == Kind.BIT_XOR) res = new LuaInt(getInt(handleExp(e0, arg, 1)) ^ getInt(handleExp(e1, arg, 1))); // ~
 		else if (op == Kind.BIT_SHIFTR) res = new LuaInt(getInt(handleExp(e0, arg, 1)) >> getInt(handleExp(e1, arg, 1))); // >>
-		else if (op == Kind.BIT_SHIFTR) res = new LuaInt(getInt(handleExp(e0, arg, 1)) << getInt(handleExp(e1, arg, 1))); // <<
+		else if (op == Kind.BIT_SHIFTL) res = new LuaInt(getInt(handleExp(e0, arg, 1)) << getInt(handleExp(e1, arg, 1))); // <<
 		else if (op == Kind.REL_EQEQ) res = e0.equals(e1) ? new LuaBoolean(true) : new LuaBoolean(false); // ==
 		else if (op == Kind.REL_NOTEQ) res = e0.equals(e1) ? new LuaBoolean(false) : new LuaBoolean(true); // ~=
 		else if (op == Kind.REL_LT) res = new LuaBoolean(compare(e0, e1, 0, arg)); // <
@@ -414,7 +419,10 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		boolean flag = transferToBool(handleExp(e, arg, 2));
 		while (flag == true) {
 			visitBlock(b, arg);
-			if (exitLoop == true) return null;
+			if (exitLoop == true) {
+				exitLoop = false;
+				return null;
+			}
 			flag = transferToBool(handleExp(e, arg, 2));
 		}
 		return null;
@@ -427,7 +435,10 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		boolean flag = transferToBool(handleExp(e, arg, 2));
 		while (flag == false) {
 			visitBlock(b, arg);
-			if (exitLoop == true) return null;
+			if (exitLoop == true) {
+				exitLoop = false;
+				return null;
+			}
 			flag = transferToBool(handleExp(e, arg, 2));
 		}
 		return null;
@@ -495,10 +506,14 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 				valueList.add(((LuaTable)arg).get(key));
 			}
 			else if (e instanceof ExpString) {
-				LuaValue key = new LuaString(((ExpString)e).v);
-				valueList.add(((LuaTable)arg).get(key));
+//				LuaValue key = new LuaString(((ExpString)e).v);
+//				valueList.add(((LuaTable)arg).get(key));
+				valueList.add(new LuaString(((ExpString) e).v));
 			}
-			else error(retStat.firstToken, "Type cannot return");
+			else {
+				LuaValue rtn = handleExp(e, arg, 0);
+				valueList.add(rtn);
+			}
 		}
 		return null;
 	}
@@ -592,13 +607,14 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		List<Exp> args = expFunctionCall.args;
 		List<LuaValue> argVals = new ArrayList<>();
 		LuaValue fun = handleExp(f, arg, 1);
+		List<LuaValue> res = new ArrayList<>();
 		for (Exp e : args) argVals.add(handleExp(e, arg, 1));
 		if (fun instanceof JavaFunction) {
-			List<LuaValue> res = ((JavaFunction) fun).call(argVals);
+			res = ((JavaFunction) fun).call(argVals);
 			if (res.size() > 0) return res.get(0);
 		}
 		else error(expFunctionCall.firstToken, "Cannot make a function call");
-		return fun;
+		return LuaNil.nil;
 	}
 
 	@Override

@@ -11,9 +11,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import cop5556fa19.AST.Exp;
 import cop5556fa19.Parser.SyntaxException;
 import interpreter.ASTVisitorAdapter;
 import interpreter.Interpreter;
+import interpreter.LuaBoolean;
 import interpreter.LuaInt;
 import interpreter.LuaNil;
 import interpreter.LuaString;
@@ -69,6 +71,144 @@ import interpreter.StaticSemanticException;
 			return l;
 		}
 		
+		@Test
+		void testFailure0() throws Exception {
+			String input = "x = { \nprint(\n\"This is returning nothing. Should this throw?\"\n) \n} \nreturn x";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expectedList = new ArrayList<>();
+			LuaTable expected = new LuaTable();
+//			expected.putImplicit(LuaNil.nil);
+			expectedList.add(expected);
+			show(expectedList);
+			assertEquals(ret, expectedList);
+		}
+		
+		@Test
+		void testFailure1() throws Exception {
+			String input = "return 1+2+3<4+5";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaBoolean(true));
+			assertEquals(ret, expected);
+		}
+		@Test
+		void testFailure2() throws Exception {
+			String input = "return 1+2+3+4+5";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(15));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure3() throws Exception {
+			String input = "return 1+2*3+4*5";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(27));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure4() throws Exception {
+			String input = "return 1+2*(3+4)*5";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(71));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure5() throws Exception {
+			String input = "return 1<<2*3+4*5";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(67108864));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure6() throws Exception {
+			String input = "return 1|2&3+4";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(3));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure7() throws Exception {
+			String input = "return 1 ~ 2 | 3 & 4";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(3));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure8() throws Exception {
+			String input = "return (3 * 4) / (2 % 3)//(-5)";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(-2));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure9() throws Exception {
+			String input = "a=toNumber(\"2\"); return 1+a";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(3));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure10() throws Exception {
+			String input = "return \"123\" .. \"456\"";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaString("123456"));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure11() throws Exception {
+			String input = "return 123 .. \"one two three\"";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaString("123one two three"));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure12() throws Exception {
+			String input = "return (100+20+3) .. \"one two three\"";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaString("123one two three"));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure13() throws Exception {
+			String input = "do\n    goto canItSeeThisLabel    ::gotoCanSeeThisLabel::\r\n    return 'obviously it wont hit this'\r\nend\r\n::canItSeeThisLabel::\r\nreturn 'in outer scopes does the label need to occur before the block containing the goto statement?'";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaString("in outer scopes does the label need to occur before the block containing the goto statement?"));
+			assertEquals(ret, expected);
+		}
+		
+		@Test
+		void testFailure14() throws Exception {
+			String input = "outer = 3 sum = 0 \nwhile outer > 0 \ndo inner = 10 \n   while inner > 0 \n    do if inner < 8 \n        then break \n    end \n    sum = sum + 1\n    inner = inner - 1 \n   end \n   outer = outer - 1 \nend \nreturn outer,inner,sum";
+			List<LuaValue> ret = interpret(input);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(new LuaInt(0));
+			expected.add(new LuaInt(7));
+			expected.add(new LuaInt(9));
+			assertEquals(expected, ret);
+		}
 		
 		@Test
 		void runEmpty() throws Exception{
@@ -183,7 +323,7 @@ import interpreter.StaticSemanticException;
 			show(input);
 			assertThrows(StaticSemanticException.class,()->{
 				List<LuaValue> ret = interpret(input);
-			});	
+			});
 		}
 		
 		@Test 

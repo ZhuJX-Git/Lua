@@ -94,6 +94,42 @@ class ParserTest {
 	}
 	
 	@Test
+	void testFailure0() throws Exception {
+		String input = "input = \"hello \" .. \"there\"";
+//		Exp e = parseExpAndShow(input);
+		Block b = parseBlockAndShow(input);
+	}
+	
+	@Test
+	void testFailure1() throws Exception {
+		String input = "\"concat\" .. \"is\"..\"right associative\"";
+		Exp e = parseExpAndShow(input);
+	}
+	
+	@Test
+	void testFailure3() throws Exception {
+		String input = "{3,a}";
+		Exp e = parseExpAndShow(input);
+	}
+	
+	@Test
+	void testFailure4() throws Exception {
+		String input = "a,c=8,f()";
+		Block b = parseBlockAndShow(input);
+	}
+	
+	@Test
+	void testFailure5() throws Exception {
+		String input = "x=f();";
+		Block b = parseBlockAndShow(input);
+	}
+	
+	@Test
+	void testFailure6() throws Exception {
+		
+	}
+	
+	@Test
 	void testEmpty1() throws Exception {
 		String input = "{3, a}";
 //		Block b = parseBlockAndShow(input);

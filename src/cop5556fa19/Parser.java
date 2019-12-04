@@ -109,7 +109,6 @@ public class Parser {
 			consume();
 			Block b = block();
 			match(KW_end);
-			System.out.println(firstToken);
 			s = new StatDo(firstToken, b);
 		}
 		else if (isKind(KW_while)) {
@@ -256,7 +255,6 @@ public class Parser {
 	ExpList explist() throws Exception {
 		Token firstToken = t;
 		List<Exp> list = new ArrayList<>();
-		
 		list.add(exp());
 		while (isKind(COMMA)) {
 			consume();
@@ -268,7 +266,6 @@ public class Parser {
 	
 	Exp prefixexpTail(Exp e0) throws Exception {
 		Token firstToken = t;
-		
 		if (isKind(LSQUARE)) {
 			consume();
 			Exp e1 = exp();
@@ -370,7 +367,6 @@ public class Parser {
 		
 		if (isKind(LPAREN)) {
 			consume();
-//			System.out.println("test");
 			if (isKind(KW_nil) || isKind(KW_false) || isKind(KW_true) || isKind(INTLIT) || isKind(STRINGLIT) || isKind(DOTDOTDOT) || isKind(KW_function) || isKind(NAME) || isKind(LPAREN) || isKind(LCURLY) || isKind(KW_not) || isKind(BIT_XOR) || isKind(OP_MINUS) || isKind(OP_HASH)) {
 				exps = explist().list;
 				match(RPAREN);
@@ -735,7 +731,10 @@ public class Parser {
 	}
 	
 	Exp EExpr(Name name) throws Exception{
-		return new ExpName(name.toString());
+		Exp e0 = new ExpName(name.name);
+		e0 = prefixexpTail(e0);
+		
+		return e0;
 	}
 	
 	ExpFunction functiondef() throws Exception {
@@ -753,7 +752,6 @@ public class Parser {
 		Block block;
 		
 		match(LPAREN);
-//		System.out.println("ok");
 		if (isKind(RPAREN)) {
 			consume();
 			block = block();
@@ -847,8 +845,7 @@ public class Parser {
 					fields.add(new FieldNameKey(first_token, name, e0));
 				}
 				else {
-//					Exp e0 = Exp(name);
-					Exp e0 = new ExpName(name.name);
+					Exp e0 = Exp(name);
 					fields.add(new FieldImplicitKey(first_token, e0));
 				}
 			}
@@ -860,7 +857,6 @@ public class Parser {
 				break;
 			}
 		}
-		
 		return new FieldList(first_token, fields);
 	}
 	
@@ -883,8 +879,7 @@ public class Parser {
 				return new FieldNameKey(first_token, name, e0);
 			}
 			else {
-//				Exp e0 = Exp(name);
-				Exp e0 = new ExpName(name.name);
+				Exp e0 = Exp(name);
 				return new FieldImplicitKey(first_token, e0);
 			}
 		}

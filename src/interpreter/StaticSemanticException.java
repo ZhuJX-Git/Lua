@@ -11,5 +11,9 @@ public class StaticSemanticException extends Exception {
 		public StaticSemanticException(Token t, String message) {
 			super(t.line + ":" + t.pos + " " + message);
 		}
+		
+		public StaticSemanticException(String message) {
+			super(message);
+		}
 	
 }
